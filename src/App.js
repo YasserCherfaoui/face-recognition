@@ -9,10 +9,9 @@ import Clarifai from "clarifai";
 import FaceRecog from "./Components/FaceRecog/FaceRecog";
 import Signin from "./Components/Signin/Signin";
 import Register from "./Components/Register/Register";
-import credentials from "./Components/DB/credentials";
-
+require('dotenv').config()
 const app = new Clarifai.App({
-  apiKey: "52efa57f3f8941c58d4c2826bc7b9e9e",
+  apiKey: process.env.REACT_APP_API_KEY,
 });
 const particlesOptions = {
   particles: {
@@ -44,6 +43,9 @@ class App extends React.Component {
     this.isNot = this.isNot.bind(this);
     this.addToDB = this.addToDB.bind(this);
   }
+  componentDidMount() {
+ 
+  }
   calculateFaceLocation(data) {
     const face = data.outputs[0].data.regions[0].region_info.bounding_box;
     const image = document.getElementById("image");
@@ -74,17 +76,8 @@ class App extends React.Component {
       )
       .catch((err) => console.log(err));
   };
-  onLogin() {
-    let email = document.getElementById("email-address").value;
-    let password = document.getElementById("password").value;
-    console.log(email, password);
-    for (let a of credentials) {
-      if (email === a.user && password === a.pass) {
-        this.setState({ isSignedIn: true, name: email });
-      } else {
-        window.alert("Wrong password");
-      }
-    }
+  onLogin(email) {
+    this.setState({ isSignedIn: true, name: email });
   }
   signout() {
     this.setState({ isSignedIn: false });
@@ -92,22 +85,14 @@ class App extends React.Component {
   register() {
     this.setState({ isStranger: true });
   }
-  addToDB() {
-    let user = document.getElementById("user").value;
-    let pass = document.getElementById("pass").value;
-    console.log(user, pass);
-    const isHere = credentials.forEach((data) => {
-      if (user === data.user) {
-        return true;
-      }
-    });
-    isHere
-      ? window.alert("User already exists")
-      : this.setState({ isSignedIn: true, name: user });
-    console.log("registered ");
+  addToDB(name) {
+  this.setState({ isSignedIn: true,name,isStranger: false});
   }
   isNot() {
     this.setState({ isStranger: false });
+  }
+  getRank(){
+    fetch('http://localhost:3001/rank')
   }
   render() {
     return (
@@ -126,7 +111,7 @@ class App extends React.Component {
         ) : (
           <div>
             {" "}
-            <Rank user={this.state.name} />
+            <Rank user={this.state.name} rank={this.getRank} />
             <ImageLinkFrom
               onInputChange={this.onInputChange}
               onSubmit={this.onSubmit}
